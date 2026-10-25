@@ -117,37 +117,49 @@ Content of parcels.csv:
 P1,PICKED_UP
 ```
 
-## Task 4. AI-generated poor and good designs
+# Task 4. AI-generated poor and good designs
 
 | Item | bikeshare-poor | bikeshare-good |
 | --- | --- | --- |
-| Date | | |
-| AI tool and exact model | | |
-| Prompt (B or C as given, or your changed prompt in full) | | |
-| Builds with mvn package (yes or no) | | |
-| Number of classes, interfaces, enums and records | | |
-| SonarQube issues, total | | |
-| SonarQube issues, by rule | | |
-| AI review findings in Check 1 | | |
-| AI review findings in Check 2 | | |
-| Review output file in the reviews folder | | |
+| Date | 25 Oct 2026 | 25 Oct 2026 |
+| AI tool and exact model | Gemini 2.5 Pro | Gemini 2.5 Pro |
+| Prompt (B or C as given, or your changed prompt in full) | Prompt B | Prompt C |
+| Builds with mvn package (yes or no) | Yes | Yes |
+| Number of classes, interfaces, enums and records | 3 classes, 0 interfaces, 0 enums, 0 records | 5 classes, 1 interface (`RentalStorage`), 1 enum (`BikeType`), 0 records |
+| SonarQube issues, total | 4 issues | 4 issues |
+| SonarQube issues, by rule | `java:S106` (3 issues), `java:S1104` (1 issue) | `java:S106` (4 issues) |
+| AI review findings in Check 1 | 2 findings (Unused import `java.util.Date`, unused private field `maxBikes`) | 0 findings |
+| AI review findings in Check 2 | 4 findings (Public fields/Encapsulation breach, Low class cohesion, Control coupling via boolean flag, Connascence of convention) | 0 findings |
+| Review output file in the reviews folder | `reviews/bikeshare-poor-review.md` | `reviews/bikeshare-good-review.md` |
 
 4.1 Did SonarQube report any cohesion or coupling problem in bikeshare-poor? Quote the rule and the message if it did.
+No. SonarQube did not report any cohesion or coupling problems. It only flagged syntax-level code smells and variable visibility rules (`java:S106`: *"Replace this use of System.out or System.err by a logger"* and `java:S1104`: *"Class variable 'bikes' should not be public"*). It completely missed architectural design flaws such as low class cohesion in `BikeService` and control coupling in `printBikes(boolean forStaff)`.
 
 4.2 Did the AI review tell the two versions apart? Give one finding for bikeshare-poor that does not appear for bikeshare-good.
+Yes, the AI review clearly distinguished the two versions. One specific finding present in `bikeshare-poor` but absent in `bikeshare-good` is:
+> *"Control coupling in `BikeService.printBikes(boolean forStaff)`: Passing a boolean control flag alters method execution flow to switch between customer and staff display logic, violating functional cohesion."*
 
 4.3 Which version would you rather extend with a new member type, such as a visitor who pays 4 baht per minute, and why?
+`bikeshare-good`. Extending `bikeshare-good` only requires adding a new value to the `BikeType` Enum (or defining a strategy implementation) with its associated rate, without altering storage or UI code. In contrast, extending `bikeshare-poor` requires modifying magic integer constants across multiple classes, expanding `if-else` blocks in `BikeService`, and risking unintended side effects due to direct public field mutations and weak class cohesion.
 
 ## Task 5. Reflection
 
 5.1 What does SonarQube check, and what does it not check? Answer with examples from this lab.
+- **What SonarQube checks**: Syntactic correctness, probable runtime bugs, resource leaks, unused code, and localized code smells. (Examples from lab: unclosed `FileWriter` `java:S2095`, String comparison using `==` `java:S4973`, unused imports `java:S1128`, and `System.out` usage `java:S106`).
+- **What SonarQube does NOT check**: Structural software architecture, design quality, cohesion, coupling, or connascence. (Examples from lab: low class cohesion in `ParcelService`, control coupling via boolean flags `printBikes(boolean)`, and connascence of convention using raw integer codes `1, 2, 3`).
 
 5.2 When should you not trust the AI review? Give an example from this lab.
+You should not trust AI reviews when analyzing domain-specific constraints without full project context, or when the prompt lacks clear evaluation criteria. For example, the AI review initially flagged standard `System.out.println` calls in `Main.java` as a cohesion defect or bad practice. While valid in enterprise backend services, console output in a dedicated CLI `Main` class is expected behavior for a lab command-line tool.
 
 5.3 What will you do differently in Project Phase 2 after this lab?
+1. **Automate Static Analysis Early**: Integrate SonarQube into the build pipeline to catch syntactic bugs, resource leaks, and unclosed streams before code reviews.
+2. **Perform Targeted Architectural Reviews**: Use structured AI prompts specifically focused on design metrics (Cohesion, Coupling, Encapsulation, Connascence) to evaluate class design beyond what automated linters catch.
+3. **Enforce Clean Architecture Principles**: Apply private encapsulation, Enums for magic constants, and interface abstractions (Dependency Injection) from day one to maintain low coupling and high cohesion.
 
 ## AI usage declaration
 
 | AI tool and exact model | Purpose | Files or parts that it produced or changed | How you checked its output |
 | --- | --- | --- | --- |
-| | | | |
+| Gemini 2.5 Pro | Code Review (Prompt A) | `reviews/parcelpoint-review.md`, `reviews/bikeshare-poor-review.md`, `reviews/bikeshare-good-review.md` | Verified line numbers and findings manually against source code files. |
+| Gemini 2.5 Pro | Code Generation (Prompts B & C) | `bikeshare-poor/*`, `bikeshare-good/*` | Compiled via `mvn compile`, ran test commands, and checked SonarQube warnings in VS Code. |
+| Gemini 2.5 Pro | Bug Fix & Refactoring | `Parcel.java`, `ParcelService.java` | Verified runtime outputs (`pickup P1 5`, `Fee: 30.0`), confirmed CSV persistence, and ran Maven tests. |
