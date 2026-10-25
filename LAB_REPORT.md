@@ -8,8 +8,8 @@ Repository URL: https://github.com/kjmcha/itcs382-lab.git
 | --- | --- |
 | JDK | 25.0.5 |
 | Maven | 3.10.0 |
-| IDE | SonarLint for VS Code |
-| SonarQube for IDE | Visual Studio Code (VS Code) |
+| IDE | Visual Studio Code (VS Code) |
+| SonarQube for IDE | SonarLint for VS Code |
 | AI tool and exact model | Gemini 2.5 Pro |
 
 ## Task 1. SonarQube on the starter code
